@@ -3,9 +3,9 @@ entries:
   loki:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-01-14T19:28:38.922413635Z"
+    created: "2025-01-14T22:32:59.707723566Z"
     description: A Helm chart for Kubernetes
-    digest: f89f302ead4d57717fba3a576bb5c217f60cdaa5c8b693ac7392acb4a38e0e99
+    digest: 806a2111a62d55eabe5ae2174aeb0a03238508bbe1a45943eb661b88d1290385
     name: loki
     type: application
     urls:
@@ -14,12 +14,12 @@ entries:
   mimir:
   - apiVersion: v2
     appVersion: 2.15.0
-    created: "2025-01-14T19:28:38.922875352Z"
+    created: "2025-01-14T22:32:59.70808527Z"
     description: A Helm chart for Kubernetes
-    digest: e5fd499f6466f161f5b1d79f3b80eba1c1b92e921df7c7d16f2e3a30a7ca4d28
+    digest: f1bb0250a4e31d60f4546d8e040894171beb488990595663d3fe769df9d00c4c
     name: mimir
     type: application
     urls:
-    - https://damfle.github.io/charts/mimir-0.1.5.tgz
-    version: 0.1.5
-generated: "2025-01-14T19:28:38.921466543Z"
+    - https://damfle.github.io/charts/mimir-0.1.6.tgz
+    version: 0.1.6
+generated: "2025-01-14T22:32:59.707215278Z"
