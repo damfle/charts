@@ -32,7 +32,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - -config.file=/etc/mimir/mimir.yaml
+            - /mimir
+            - --config.file=/etc/mimir/mimir.yaml
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
