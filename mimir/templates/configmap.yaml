@@ -5,4 +5,6 @@ metadata:
 data:
   mimir.yaml: |-
     ---
-    {{- toYaml .Values.mimirConfig | nindent 4 }}}
+    {{- $baseConfig := .Files.Get "mimir.yaml" | fromYaml }}
+    {{- $mergedConfig := merge  .Values.mimirConfig $baseConfig }}
+    {{- toYaml $mergedConfig | nindent 4 }}

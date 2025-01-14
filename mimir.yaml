@@ -1,0 +1,207 @@
+---
+# Source: mimir/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mimir-config
+data:
+  mimir.yaml: |-
+    ---
+    activity_tracker:
+      filepath: /var/log/mimir/activity.log
+    blocks_storage:
+      backend: filesystem
+      bucket_store:
+        sync_dir: /var/lib/mimir/tsdb-sync
+      filesystem:
+        dir: /var/lib/mimir/data/tsdb
+      tsdb:
+        dir: /var/lib/mimir/tsdb
+    compactor:
+      data_dir: /var/lib/mimir/compactor
+      sharding_ring:
+        kvstore:
+          store: memberlist
+    distributor:
+      ring:
+        instance_addr: 127.0.0.1
+        kvstore:
+          store: memberlist
+    ingester:
+      ring:
+        instance_addr: 127.0.0.1
+        kvstore:
+          store: memberlist
+        replication_factor: 1
+    multitenancy_enabled: false
+    ruler_storage:
+      backend: filesystem
+      filesystem:
+        dir: /var/lib/mimir/rules
+    server:
+      http_listen_address: 0.0.0.0
+      http_listen_port: 9009
+    store_gateway:
+      sharding_ring:
+        replication_factor: 1
+---
+# Source: mimir/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mimir-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: longhorn
+---
+# Source: mimir/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-mimir
+  labels:
+    helm.sh/chart: mimir-0.1.6
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9009
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+---
+# Source: mimir/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-mimir
+  labels:
+    helm.sh/chart: mimir-0.1.6
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mimir
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: mimir-0.1.6
+        app.kubernetes.io/name: mimir
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "2.15.0"
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      containers:
+        - name: mimir
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+          image: "grafana/mimir:2.15.0"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/mimir
+            - --config.file=/etc/mimir/mimir.yaml
+          ports:
+            - name: http
+              containerPort: 9009
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: logs
+              mountPath: "/var/log/mimir"
+            - name: data
+              mountPath: "/var/lib/mimir"
+            - name: config
+              mountPath: "/etc/mimir"
+              readOnly: true
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: data
+          persistentVolumeClaim:
+            claimName: mimir-data-pvc
+        - name: config
+          configMap:
+            name: mimir-config
+            items:
+              - key: mimir.yaml
+                path: mimir.yaml
+---
+# Source: mimir/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: release-name-mimir
+  labels:
+    helm.sh/chart: mimir-0.1.6
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: "loki.cluster.local"
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: release-name-mimir
+                port:
+                  number: 9009
+---
+# Source: mimir/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "release-name-mimir-test-connection"
+  labels:
+    helm.sh/chart: mimir-0.1.6
+    app.kubernetes.io/name: mimir
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.15.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['release-name-mimir:9009']
+  restartPolicy: Never

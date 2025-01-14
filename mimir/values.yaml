@@ -2,54 +2,10 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-storageClassName: "standard"
+storageClassName: "longhorn"
 storageSize: "1Gi"
 
-mimirConfig:
-  # Do not use this configuration in production.
-  # It is for demonstration purposes only.
-  multitenancy_enabled: false
-
-  blocks_storage:
-    backend: filesystem
-    bucket_store:
-      sync_dir: /var/lib/mimir/tsdb-sync
-    filesystem:
-      dir: /var/lib/mimir/data/tsdb
-    tsdb:
-      dir: /var/lib/mimir/tsdb
-
-  compactor:
-    data_dir: /var/lib/mimir/compactor
-    sharding_ring:
-      kvstore:
-        store: memberlist
-
-  distributor:
-    ring:
-      instance_addr: 0.0.0.0
-      kvstore:
-        store: memberlist
-
-  ingester:
-    ring:
-      instance_addr: 0.0.0.0
-      kvstore:
-        store: memberlist
-      replication_factor: 1
-
-  ruler_storage:
-    backend: filesystem
-    filesystem:
-      dir: /var/lib/mimir/rules
-
-  server:
-    http_listen_port: 9009
-    http_listen_address: 0.0.0.0
-  
-  store_gateway:
-    sharding_ring:
-      replication_factor: 1
+mimirConfig: {}
 
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
@@ -72,17 +28,6 @@ podAnnotations: {}
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
@@ -112,16 +57,6 @@ resources:
   requests:
     cpu: 500m
     memory: 512Mi
-
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-livenessProbe:
-  httpGet:
-    path: /metrics
-    port: http
-readinessProbe:
-  httpGet:
-    path: /metrics
-    port: http
 
 # Additional volumes on the output Deployment definition.
 volumes: []
