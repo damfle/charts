@@ -1,0 +1,38 @@
+name: Build and Serve Helm Charts
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v1
+      with:
+        version: v3.7.1
+
+    - name: Build all Helm charts
+      run: |
+        mkdir -p packaged
+        for chart in charts/*; do
+          helm package $chart -d packaged
+        done
+
+    - name: Create Helm repo index
+      run: helm repo index packaged --url https://damfle.github.io/charts
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./packaged
