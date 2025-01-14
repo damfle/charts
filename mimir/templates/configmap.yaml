@@ -5,4 +5,4 @@ metadata:
 data:
   mimir.yaml: |-
     ---
-    {{- toYaml .Values.mimirConfig. | nindent 4 }}}
+    {{- toYaml .Values.mimirConfig | nindent 4 }}}
