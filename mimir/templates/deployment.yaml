@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "mimir.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       {{- include "mimir.selectorLabels" . | nindent 6 }}
@@ -45,6 +45,9 @@ spec:
           volumeMounts:
             - name: data
               mountPath: "/var/lib/mimir"
+            - name: config
+              mountPath: "/etc/mimir"
+              readOnly: true
             {{- toYaml . | nindent 12 }}
           {{- end }}
       {{- with .Values.volumes }}
@@ -52,6 +55,12 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: mimir-data-pvc
+        - name: config
+          configMap:
+            name: mimir-config
+            items:
+              - key: mimir.yaml
+                path: mimir.yaml
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
