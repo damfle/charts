@@ -11,7 +11,7 @@ image:
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: "2.15.0"
 
 # This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
@@ -79,14 +79,15 @@ readinessProbe:
 # Additional volumes on the output Deployment definition.
 volumes:
   - name: data
-    emptyDir: {}
-    storageClass: longhorn
+    persistentVolumeClaim:
+      claimName: mimir-data
+      storageClass: longhorn
   - name: config
     configMap:
       name: mimir-config
       items:
         - key: mimir.yaml
-  
+          path: mimir.yaml  
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
   - name: data
