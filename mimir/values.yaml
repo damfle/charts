@@ -5,6 +5,9 @@
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
 
+storageClassName: "standard"
+storageSize: "1Gi"
+
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
   repository: grafana/mimir
@@ -78,10 +81,6 @@ readinessProbe:
 
 # Additional volumes on the output Deployment definition.
 volumes:
-  - name: data
-    persistentVolumeClaim:
-      claimName: mimir-data
-      storageClass: longhorn
   - name: config
     configMap:
       name: mimir-config
@@ -90,9 +89,6 @@ volumes:
           path: mimir.yaml  
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
-  - name: data
-    mountPath: "/var/lib/mimir"
-    readOnly: true
   - name: config
     mountPath: "/etc/mimir"
     readOnly: true
